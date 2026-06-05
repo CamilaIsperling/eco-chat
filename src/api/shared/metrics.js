@@ -8,15 +8,29 @@ export function clamp(value, minimum, maximum) {
   return Math.min(maximum, Math.max(minimum, value));
 }
 
+/**
+ * Calcula as métricas ambientais estimadas de uma sessão de conversa.
+ *
+ * - Energia: derivada de mensagens + tempo (ver METRIC_FACTORS).
+ * - CO2e: energia x intensidade de carbono da rede.
+ * - Água: MÉTRICA PRINCIPAL por palavras geradas (Li et al., 2023/2025,
+ *   ~5,19 ml/palavra). Sem contagem de palavras, recai na estimativa pela energia.
+ *
+ * Fórmulas, fontes e limitações detalhadas em docs/METRICAS.md.
+ */
 export function calculateSessionMetrics(session) {
   const sentMessages = Number(session.sentMessages || 0);
   const receivedMessages = Number(session.receivedMessages || 0);
   const totalMessages = sentMessages + receivedMessages;
+  const generatedWords = Number(session.generatedWords || 0);
   const activityMs = Number(session.activityMs || 0);
   const totalResponseMs = Number(
     session.totalResponseMs ||
       (Array.isArray(session.responseTimesMs)
-        ? session.responseTimesMs.reduce((sum, value) => sum + Number(value || 0), 0)
+        ? session.responseTimesMs.reduce(
+            (sum, value) => sum + Number(value || 0),
+            0,
+          )
         : 0),
   );
   const averageResponseMs =
@@ -32,7 +46,12 @@ export function calculateSessionMetrics(session) {
     responseSeconds * METRIC_FACTORS.whPerResponseSecond;
   const energyKWh = energyWh / 1000;
   const co2eGrams = energyKWh * METRIC_FACTORS.gramsCo2ePerKWh;
-  const waterLiters = energyKWh * METRIC_FACTORS.litersWaterPerKWh;
+  // Água principal por palavras GERADAS pela IA (Li et al.); fallback pela
+  // energia quando a conversa não traz a contagem de palavras geradas.
+  const waterLiters =
+    generatedWords > 0
+      ? (generatedWords * METRIC_FACTORS.mlWaterPerWord) / 1000
+      : energyKWh * METRIC_FACTORS.litersWaterPerKWh;
 
   return {
     totalMessages,
@@ -124,4 +143,3 @@ export function buildImpactSegments(co2eGrams) {
     active: index < filledSegments,
   }));
 }
-

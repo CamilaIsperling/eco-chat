@@ -14,25 +14,35 @@ from pathlib import Path
 
 
 def carregar_sessoes(caminho: Path) -> list[dict]:
-    dados = json.loads(caminho.read_text(encoding="utf-8"))
+    # utf-8-sig tolera arquivos com ou sem BOM (ex.: JSON salvo por alguns editores).
+    dados = json.loads(caminho.read_text(encoding="utf-8-sig"))
 
+    # Formato exportado pelo popup da extensão: {ok, exportedAt, settings, sessions: [...]}
+    if isinstance(dados, dict) and isinstance(dados.get("sessions"), list):
+        return dados["sessions"]
+
+    # Dump bruto do chrome.storage.local: {iaSustentavelSessions: {id: sessao, ...}}
     if isinstance(dados, dict) and "iaSustentavelSessions" in dados:
         sessoes = dados["iaSustentavelSessions"]
         if isinstance(sessoes, dict):
             return list(sessoes.values())
 
-    if isinstance(dados, dict):
-        return list(dados.values())
-
+    # Lista de sessões direta.
     if isinstance(dados, list):
         return dados
+
+    # Dicionário de sessões indexado por id.
+    if isinstance(dados, dict):
+        return list(dados.values())
 
     raise ValueError("Formato de entrada não suportado.")
 
 
 def principal() -> int:
     if len(sys.argv) != 3:
-        print("Uso: python scripts/generate_metrics_report.py <entrada.json> <saida.csv>")
+        print(
+            "Uso: python scripts/generate_metrics_report.py <entrada.json> <saida.csv>"
+        )
         return 1
 
     origem = Path(sys.argv[1])
@@ -51,6 +61,7 @@ def principal() -> int:
                 "atualizadoEm",
                 "mensagensEnviadas",
                 "mensagensRecebidas",
+                "palavrasGeradas",
                 "atividadeMs",
                 "co2eGramas",
                 "energiaKWh",
@@ -70,11 +81,14 @@ def principal() -> int:
                     "atualizadoEm": sessao.get("updatedAt"),
                     "mensagensEnviadas": sessao.get("sentMessages", 0),
                     "mensagensRecebidas": sessao.get("receivedMessages", 0),
+                    "palavrasGeradas": sessao.get("generatedWords", 0),
                     "atividadeMs": sessao.get("activityMs", 0),
                     "co2eGramas": metricas.get("co2eGrams", 0),
                     "energiaKWh": metricas.get("energyKWh", 0),
                     "aguaLitros": metricas.get("waterLiters", 0),
-                    "nivelImpacto": metricas.get("impactLevel", sessao.get("impactLevel", "")),
+                    "nivelImpacto": metricas.get(
+                        "impactLevel", sessao.get("impactLevel", "")
+                    ),
                 }
             )
 

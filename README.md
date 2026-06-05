@@ -130,7 +130,7 @@ O popup foi estruturado a partir das telas definidas no protótipo da interface 
 
 ### Apoio analítico
 
-- Python para processamento e exportação de métricas
+- Python apenas para gerar relatório CSV a partir dos dados exportados (os cálculos das métricas rodam no navegador, em JavaScript)
 
 ---
 
@@ -164,7 +164,7 @@ Popup React
 
 ## Como as métricas são calculadas
 
-As métricas do protótipo são **aproximadas** e foram pensadas para **conscientização**, não para medição física exata.
+As métricas do protótipo são **aproximadas** e foram pensadas para **conscientização**, não para medição física exata. A fundamentação completa (origem, fórmulas, limitações, fontes e divergências entre estudos) está em [docs/METRICAS.md](docs/METRICAS.md).
 
 Os fatores atuais estão definidos em [constants.js](src/api/shared/constants.js).
 
@@ -173,6 +173,7 @@ Hoje, a estimativa considera:
 - quantidade total de mensagens
 - tempo de atividade observado
 - soma dos tempos de resposta observados
+- palavras geradas pela IA (base da métrica de água)
 
 ### Fórmula resumida
 
@@ -185,7 +186,9 @@ energia (Wh) =
 CO2e =
   energia_em_kWh * fator_médio_de_emissão
 
-água =
+água (principal) =
+  palavras_geradas_pela_IA * fator_por_palavra
+água (fallback, sem contagem de palavras) =
   energia_em_kWh * fator_hídrico_médio
 ```
 
@@ -195,27 +198,28 @@ CO2e =
 - `0.09 Wh` por segundo de atividade
 - `0.18 Wh` por segundo de resposta
 - `300 g CO2e` por kWh
-- `3.75 L` por kWh
+- `5.19 ml` de água por palavra gerada (≈519 ml / 100 palavras — Li et al.)
+- `3.75 L` por kWh (usado apenas no fallback de água)
 
-Esses valores podem ser refinados conforme a evolução da pesquisa e da fundamentação teórica do TCC.
+Valores acadêmicos alternativos (energia por consulta da Epoch AI; intensidade de carbono global da Ember) ficam documentados e prontos para troca em `ACADEMIC_FACTORS` ([constants.js](src/api/shared/constants.js)). Esses valores podem ser refinados conforme a evolução da pesquisa e da fundamentação teórica do TCC.
 
 ---
 
 ## Tecnologias utilizadas
 
-| Camada | Tecnologia | Papel no projeto |
-|---|---|---|
-| UI | React | Construção do popup da extensão |
-| Estilo | Glamor | Estilos globais e componentes visuais do popup |
-| Build | Vite | Empacotamento rápido do projeto |
-| Extensão | Manifest V3 | Estrutura oficial da extensão Chrome |
-| Coleta | MutationObserver | Observação de mudanças no DOM do ChatGPT |
-| Coleta | Performance API | Medição de tempos de resposta |
-| Coordenação | Service Worker | Centralização da lógica e persistência |
-| Armazenamento | chrome.storage.local | Histórico, sessões e preferências |
-| Testes unitários | Vitest | Validação da lógica de métricas |
-| Qualidade | ESLint + Prettier | Padronização e consistência do código |
-| Apoio analítico | Python | Exportação e manipulação de dados |
+| Camada           | Tecnologia           | Papel no projeto                                                      |
+| ---------------- | -------------------- | --------------------------------------------------------------------- |
+| UI               | React                | Construção do popup da extensão                                       |
+| Estilo           | Glamor               | Estilos globais e componentes visuais do popup                        |
+| Build            | Vite                 | Empacotamento rápido do projeto                                       |
+| Extensão         | Manifest V3          | Estrutura oficial da extensão Chrome                                  |
+| Coleta           | MutationObserver     | Observação de mudanças no DOM do ChatGPT                              |
+| Coleta           | Performance API      | Medição de tempos de resposta                                         |
+| Coordenação      | Service Worker       | Centralização da lógica e persistência                                |
+| Armazenamento    | chrome.storage.local | Histórico, sessões e preferências                                     |
+| Testes unitários | Vitest               | Validação da lógica de métricas                                       |
+| Qualidade        | ESLint + Prettier    | Padronização e consistência do código                                 |
+| Apoio analítico  | Python               | Relatório CSV a partir dos dados exportados (não calcula as métricas) |
 
 ---
 
@@ -369,22 +373,18 @@ Até o estado atual do projeto, foram executadas e validadas as seguintes etapas
 
 ### Situação dos testes
 
-| Tipo | Status | Observação |
-|---|---|---|
-| ESLint | Concluído | Sem erros no estado atual |
-| Vitest | Concluído | Testes unitários passando |
-| Build Vite | Concluído | Build gerado com sucesso |
+| Tipo                       | Status       | Observação                                |
+| -------------------------- | ------------ | ----------------------------------------- |
+| ESLint                     | Concluído    | Sem erros no estado atual                 |
+| Vitest                     | Concluído    | Testes unitários passando                 |
+| Build Vite                 | Concluído    | Build gerado com sucesso                  |
 | Validação manual no Chrome | Em andamento | Processo guiado durante o desenvolvimento |
 
 ---
 
 ## Validação manual
 
-Foi criado um roteiro específico para validar a extensão diretamente no Chrome:
-
-- [MANUAL_VALIDATION.md](/c:/Repositorios/green-ai-chat-extension/MANUAL_VALIDATION.md)
-
-Esse guia cobre:
+Roteiro para validar a extensão diretamente no Chrome:
 
 - carga da extensão
 - teste do monitoramento
@@ -416,7 +416,7 @@ Arquivo relacionado:
 - monitoramento do ChatGPT via content script
 - medição de mensagens e tempo de atividade
 - medição aproximada de tempo de resposta com `Performance API`
-- cálculo de energia, CO2e e água
+- cálculo de energia, CO2e e água (água estimada pelas palavras geradas pela IA)
 - armazenamento em `chrome.storage.local`
 - popup com múltiplas telas
 - histórico por período
@@ -469,5 +469,3 @@ Consulte [LICENSE](/c:/Repositorios/green-ai-chat-extension/LICENSE).
 ## Resumo rápido
 
 O **EcoChat** é uma extensão Chrome construída com **JavaScript, React, Glamor, Vite e Manifest V3** para monitorar o uso do **ChatGPT** e traduzir a conversa em **métricas ambientais aproximadas**, com foco em **transparência, educação e uso responsável de IA**.
-
-

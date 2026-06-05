@@ -1,6 +1,14 @@
-import { CHATGPT_HOSTS, DEFAULT_SETTINGS, STORAGE_KEYS } from '../shared/constants.js';
+import {
+  CHATGPT_HOSTS,
+  DEFAULT_SETTINGS,
+  STORAGE_KEYS,
+} from '../shared/constants.js';
 import { buildHistorySnapshot } from '../shared/history.js';
-import { calculateSessionMetrics, getBadgeText, getImpactMeta } from '../shared/metrics.js';
+import {
+  calculateSessionMetrics,
+  getBadgeText,
+  getImpactMeta,
+} from '../shared/metrics.js';
 
 function mergeSettings(storedSettings = {}) {
   return {
@@ -102,7 +110,9 @@ async function maybeSendImpactAlert(tabId, session, settings, previousSession) {
   const minimumLevel = settings.alerts.minimumLevel || 'alto';
   const currentWeight = getLevelWeight(session.metrics.impactLevel);
   const minimumWeight = getLevelWeight(minimumLevel);
-  const previousWeight = getLevelWeight(previousSession?.lastAlertLevelNotified || 'baixo');
+  const previousWeight = getLevelWeight(
+    previousSession?.lastAlertLevelNotified || 'baixo',
+  );
 
   if (currentWeight < minimumWeight || currentWeight <= previousWeight) {
     return false;
@@ -147,7 +157,12 @@ async function handleSessionUpdate(payload, sender) {
   mergedSession.metrics = calculateSessionMetrics(mergedSession);
   mergedSession.impactLevel = mergedSession.metrics.impactLevel;
 
-  const alertDispatched = await maybeSendImpactAlert(tabId, mergedSession, store.settings, previousSession);
+  const alertDispatched = await maybeSendImpactAlert(
+    tabId,
+    mergedSession,
+    store.settings,
+    previousSession,
+  );
 
   if (alertDispatched) {
     mergedSession.pendingAlert = true;
@@ -169,8 +184,20 @@ async function getPopupState() {
   const sessionsList = Object.values(store.sessions);
   const activeSession =
     (activeSessionId ? store.sessions[activeSessionId] : null) ||
-    sessionsList.sort((left, right) => Number(right.updatedAt || 0) - Number(left.updatedAt || 0))[0] ||
+    sessionsList.sort(
+      (left, right) =>
+        Number(right.updatedAt || 0) - Number(left.updatedAt || 0),
+    )[0] ||
     null;
+
+  // Mantém o badge consistente com a sessão que o popup vai exibir agora.
+  if (tab?.id && activeSessionId) {
+    await updateBadgeForTab(
+      tab.id,
+      store.sessions[activeSessionId],
+      store.settings,
+    );
+  }
 
   return {
     settings: store.settings,
@@ -209,7 +236,11 @@ async function handleSettingsUpdate(patch) {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (tab?.id) {
     const activeSessionId = store.activeByTab[tab.id];
-    await updateBadgeForTab(tab.id, store.sessions[activeSessionId], store.settings);
+    await updateBadgeForTab(
+      tab.id,
+      store.sessions[activeSessionId],
+      store.settings,
+    );
   }
 
   return { settings: store.settings };
@@ -236,7 +267,8 @@ async function handleExportData() {
     exportedAt: Date.now(),
     settings: store.settings,
     sessions: Object.values(store.sessions).sort(
-      (left, right) => Number(right.updatedAt || 0) - Number(left.updatedAt || 0),
+      (left, right) =>
+        Number(right.updatedAt || 0) - Number(left.updatedAt || 0),
     ),
   };
 }
@@ -298,7 +330,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const handler = handlers[message.type];
 
   if (!handler) {
-    sendResponse({ ok: false, error: `Mensagem não suportada: ${message.type}` });
+    sendResponse({
+      ok: false,
+      error: `Mensagem não suportada: ${message.type}`,
+    });
     return false;
   }
 

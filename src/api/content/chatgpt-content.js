@@ -9,6 +9,7 @@ const state = {
   url: window.location.href,
   sentMessages: 0,
   receivedMessages: 0,
+  generatedWords: 0,
   activityMs: 0,
   totalResponseMs: 0,
   responseTimesMs: [],
@@ -25,7 +26,8 @@ function touchInteraction() {
 function shouldAccumulateActivity(now) {
   return (
     document.visibilityState === 'visible' &&
-    (state.awaitingAssistant || now - state.lastUserInteractionAt <= ACTIVE_IDLE_WINDOW_MS)
+    (state.awaitingAssistant ||
+      now - state.lastUserInteractionAt <= ACTIVE_IDLE_WINDOW_MS)
   );
 }
 
@@ -40,21 +42,38 @@ function tickActivity() {
   state.lastActivityTickAt = now;
 }
 
+function countWords(text) {
+  const trimmed = (text || '').trim();
+  return trimmed ? trimmed.split(/\s+/).length : 0;
+}
+
 function countMessages() {
+  const userMessageNodes = [
+    ...document.querySelectorAll('[data-message-author-role="user"]'),
+  ];
+  const assistantMessageNodes = [
+    ...document.querySelectorAll('[data-message-author-role="assistant"]'),
+  ];
+
   const userNodes = new Set(
-    [...document.querySelectorAll('[data-message-author-role="user"]')].map(
-      (node) => node.closest('article') || node,
-    ),
+    userMessageNodes.map((node) => node.closest('article') || node),
   );
   const assistantNodes = new Set(
-    [...document.querySelectorAll('[data-message-author-role="assistant"]')].map(
-      (node) => node.closest('article') || node,
-    ),
+    assistantMessageNodes.map((node) => node.closest('article') || node),
+  );
+
+  // Palavras GERADAS pela IA (apenas as respostas do assistente), base da
+  // métrica principal de água (Li et al.: ~519 ml por 100 palavras geradas).
+  // Atualiza em tempo real conforme a resposta é transmitida (streaming).
+  const generatedWords = assistantMessageNodes.reduce(
+    (sum, node) => sum + countWords(node.textContent),
+    0,
   );
 
   return {
     sentMessages: userNodes.size,
     receivedMessages: assistantNodes.size,
+    generatedWords,
   };
 }
 
@@ -101,12 +120,16 @@ function syncConversationState() {
     startResponseMeasure();
   }
 
-  if (current.receivedMessages > state.receivedMessages && state.awaitingAssistant) {
+  if (
+    current.receivedMessages > state.receivedMessages &&
+    state.awaitingAssistant
+  ) {
     finishResponseMeasure();
   }
 
   state.sentMessages = current.sentMessages;
   state.receivedMessages = current.receivedMessages;
+  state.generatedWords = current.generatedWords;
   state.updatedAt = Date.now();
   state.url = window.location.href;
 
@@ -128,6 +151,7 @@ function queueSessionUpdate() {
         updatedAt: state.updatedAt,
         sentMessages: state.sentMessages,
         receivedMessages: state.receivedMessages,
+        generatedWords: state.generatedWords,
         activityMs: state.activityMs,
         totalResponseMs: state.totalResponseMs,
         averageResponseMs:
@@ -173,7 +197,9 @@ function renderAlertToast(payload) {
   `;
 
   document.body.appendChild(wrapper);
-  wrapper.querySelector('#ia-sustentavel-dismiss')?.addEventListener('click', removeAlertToast);
+  wrapper
+    .querySelector('#ia-sustentavel-dismiss')
+    ?.addEventListener('click', removeAlertToast);
 }
 
 const observer = new MutationObserver(() => {
@@ -201,4 +227,3 @@ window.setInterval(() => {
 }, ACTIVITY_PING_MS);
 
 syncConversationState();
-
