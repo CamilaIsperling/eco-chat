@@ -1,4 +1,4 @@
-﻿# EcoChat
+﻿# EcoChatGPT
 
 <p align="center">
   <strong>Extensão Chrome para tornar visível o impacto ambiental aproximado do uso do ChatGPT.</strong>
@@ -17,7 +17,7 @@
 
 ## Visão geral
 
-O projeto **EcoChat** nasceu como proposta de TCC para investigar uma pergunta simples e importante:
+O projeto **EcoChatGPT** nasceu como proposta de TCC para investigar uma pergunta simples e importante:
 
 > Como tornar mais visível, no ponto de uso, o impacto ambiental associado às interações com chats de IA?
 
@@ -468,4 +468,4 @@ Consulte [LICENSE](/c:/Repositorios/green-ai-chat-extension/LICENSE).
 
 ## Resumo rápido
 
-O **EcoChat** é uma extensão Chrome construída com **JavaScript, React, Glamor, Vite e Manifest V3** para monitorar o uso do **ChatGPT** e traduzir a conversa em **métricas ambientais aproximadas**, com foco em **transparência, educação e uso responsável de IA**.
+O **EcoChatGPT** é uma extensão Chrome construída com **JavaScript, React, Glamor, Vite e Manifest V3** para monitorar o uso do **ChatGPT** e traduzir a conversa em **métricas ambientais aproximadas**, com foco em **transparência, educação e uso responsável de IA**.

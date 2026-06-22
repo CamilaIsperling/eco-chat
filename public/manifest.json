@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "EcoChat",
+  "name": "EcoChatGPT",
   "description": "Monitora o uso do ChatGPT no Chrome e estima métricas ambientais aproximadas por conversa.",
   "version": "0.1.0",
   "permissions": ["storage", "tabs"],
