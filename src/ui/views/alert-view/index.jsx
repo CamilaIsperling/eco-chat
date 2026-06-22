@@ -115,7 +115,7 @@ function AlertView({ session, onDismiss }) {
 
   return (
     <section className={styles.painel}>
-      <div className={styles.marca}>EcoChat</div>
+      <div className={styles.marca}>EcoChatGPT</div>
       <div className={styles.nivel}>Alerta de {meta.label} Impacto</div>
 
       <div className={styles.conteudo}>

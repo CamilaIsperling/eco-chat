@@ -184,7 +184,7 @@ function renderAlertToast(payload) {
   wrapper.style.overflow = 'hidden';
   wrapper.style.fontFamily = "'Trebuchet MS', 'Segoe UI', sans-serif";
   wrapper.innerHTML = `
-    <div style="background:#1f8467;color:#fff;padding:16px 18px;font-weight:700;font-size:18px;">EcoChat</div>
+    <div style="background:#1f8467;color:#fff;padding:16px 18px;font-weight:700;font-size:18px;">EcoChatGPT</div>
     <div style="background:#ef4444;color:#fff;padding:10px 18px;font-weight:700;">Alerta de impacto ${payload.impactLevel}</div>
     <div style="padding:18px;">
       <div style="font-size:13px;color:#587168;">Estimado nesta conversa</div>

@@ -169,7 +169,7 @@ function SummaryView({
       <div className={styles.topo}>
         <div className={styles.marca}>
           <div className={styles.icone}>🍃</div>
-          <div className={tituloHero}>EcoChat</div>
+          <div className={tituloHero}>EcoChatGPT</div>
         </div>
         <button
           type="button"
