@@ -8,11 +8,13 @@ import { theme } from '../../modules/theme.js';
 
 const styles = {
   painel: css({
+    flex: 1,
+    minHeight: 0,
+    overflowY: 'auto',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between',
     width: '100%',
-    height: '100%',
     padding: '16px',
     gap: '10px',
     borderRadius: theme.bordas.cartao,
