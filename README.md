@@ -19,7 +19,7 @@
 
 O projeto **EcoChatGPT** nasceu como proposta de TCC para investigar uma pergunta simples e importante:
 
-> Como tornar mais visível, no ponto de uso, o impacto ambiental associado às interações com chats de IA?
+> Como a disponibilização de métricas ambientais no uso de chats baseados em IA pode contribuir para a conscientização e a adoção de práticas mais sustentáveis pelos usuários?
 
 A solução proposta é uma **extensão para Google Chrome**, executada no lado do cliente, que monitora o uso do **ChatGPT**, estima métricas ambientais aproximadas por conversa e exibe essas informações ao usuário em tempo quase real.
 
